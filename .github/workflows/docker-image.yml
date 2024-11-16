@@ -12,12 +12,28 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+    
     - name: Print working directory
       run: pwd
+
     - name: List files in the root directory
       run: ls -la
+
     - name: Change to project directory
       run: cd nextjs-fastapi-framework-main && ls -la
+
     - name: Build the Docker image
       working-directory: nextjs-fastapi-framework-main
       run: docker build . --file Dockerfile --tag my-image-name:$(date +%s)
+
+    - name: Log in to Azure Container Registry
+      uses: azure/docker-login@v1
+      with:
+        login-server: ${{ secrets.AZURE_REGISTRY_LOGIN_SERVER }}
+        username: ${{ secrets.AZURE_REGISTRY_USERNAME }}
+        password: ${{ secrets.AZURE_REGISTRY_PASSWORD }}
+
+    - name: Push Docker image to ACR
+      run: |
+        docker tag my-image-name:$(date +%s) ${{ secrets.AZURE_REGISTRY_LOGIN_SERVER }}/my-image-name:$(date +%s)
+        docker push ${{ secrets.AZURE_REGISTRY_LOGIN_SERVER }}/my-image-name:$(date +%s)
